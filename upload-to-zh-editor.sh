@@ -40,18 +40,35 @@ trap 'rm -rf "$TMP"' EXIT
 cd "$TMP"
 
 say "② 下载两个 Mac 安装包 + 代码包"
-gh release download "$SRC_TAG" --repo "$SRC_REPO" --dir "$TMP" --clobber
-ls -lh "$TMP/$DMG_ARM" "$TMP/$DMG_INTEL"
+# 直链下载（不依赖 gh 的 release 接口）
+DL_BASE="https://github.com/$SRC_REPO/releases/download/$SRC_TAG"
+for f in "$DMG_ARM" "$DMG_INTEL" mac-packaging.bundle; do
+  curl -fsSL --retry 3 -m 900 -o "$TMP/$f" "$DL_BASE/$f"
+  ls -lh "$TMP/$f"
+done
 
 say "③ 把 macOS 打包改动推到 $DST_REPO"
 git clone --quiet "https://github.com/$DST_REPO.git" zh-editor
 cd zh-editor
-git fetch --quiet "$TMP/mac-packaging.bundle" refs/heads/main:refs/remotes/bundle/main
-git -c credential.helper='!gh auth git-credential' push origin refs/remotes/bundle/main:main
-echo "   已推送：$(git log --oneline -1 refs/remotes/bundle/main)"
+if git fetch --quiet "$TMP/mac-packaging.bundle" refs/heads/main:refs/remotes/bundle/main; then
+  if git -c credential.helper='!gh auth git-credential' push origin refs/remotes/bundle/main:main; then
+    echo "   已推送：$(git log --oneline -1 refs/remotes/bundle/main)"
+  else
+    echo "   [!] 推送失败（没权限或远端 main 变过），跳过代码推送，继续发 Release"
+  fi
+else
+  echo "   [!] 代码包应用失败，跳过代码推送，继续发 Release"
+fi
 cd "$TMP"
 
-say "④ 发 Release $DST_TAG（附两个 dmg）"
+# 发 Release / 推 workflow 文件都需要 workflow 权限
+if ! gh auth status 2>&1 | grep -q workflow; then
+  say "GitHub token 缺 workflow 权限，现在补上（会开浏览器让你确认）"
+  gh auth refresh -h github.com -s workflow || \
+    echo "   [!] 没加上 workflow 权限，Release 那步可能会失败"
+fi
+
+say "④ 发 Release ${DST_TAG}（附两个 dmg）"
 NOTES="macOS 预编译版一键程序：不用装 Python、不用终端。
 
 - Apple Silicon（M 系列）：$DMG_ARM

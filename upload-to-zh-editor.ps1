@@ -63,17 +63,33 @@ if ($push -ne 'true') {
     Write-Host "    [!] $me may not have write access to $DstRepo - will try anyway." -ForegroundColor Yellow
 }
 
-$tmp = Join-Path $env:TEMP ('qingyi-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+# Publishing needs the "workflow" scope (the commit adds .github/workflows/build-macos.yml).
+$authText = (gh auth status 2>&1 | Out-String)
+if ($authText -notmatch 'workflow') {
+    Say 'GitHub token is missing the "workflow" scope - adding it now.'
+    Write-Host '    A browser window will ask you to confirm.'
+    gh auth refresh -h github.com -s workflow
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '    [!] could not add the workflow scope - the Release step may fail.' -ForegroundColor Yellow
+        Write-Host '        Fix manually later with: gh auth refresh -h github.com -s workflow' -ForegroundColor Yellow
+    }
+}
+
+$base = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+$tmp = Join-Path $base ('qingyi-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
 New-Item -ItemType Directory -Path $tmp | Out-Null
 Write-Host "    temp dir: $tmp"
 
 Say '== Step 2/4: download installers + code bundle =='
-gh release download $SrcTag --repo $SrcRepo --dir $tmp
-Get-ChildItem -Path $tmp | Select-Object Name, Length | Format-Table -AutoSize
+# Direct download URLs - no gh release API, no auth needed.
+$dlBase = "https://github.com/$SrcRepo/releases/download/$SrcTag"
 foreach ($f in @($DmgArm, $DmgIntel, 'mac-packaging.bundle')) {
-    if (-not (Test-Path (Join-Path $tmp $f))) {
-        Write-Host "    missing download: $f" -ForegroundColor Red; exit 1
-    }
+    $out = Join-Path $tmp $f
+    Write-Host "    downloading $f ..."
+    Invoke-WebRequest -Uri "$dlBase/$f" -OutFile $out -UseBasicParsing
+    $len = (Get-Item $out).Length
+    Write-Host ("      {0:N0} bytes" -f $len)
+    if ($len -lt 1000) { Write-Host "    download looks broken: $f" -ForegroundColor Red; exit 1 }
 }
 
 Say "== Step 3/4: push macOS packaging commit to $DstRepo =="
@@ -82,7 +98,8 @@ Push-Location $tmp
 try {
     git clone --quiet "https://github.com/$DstRepo.git" zh-editor
     Set-Location zh-editor
-    git fetch --quiet "$tmp\mac-packaging.bundle" refs/heads/main:refs/remotes/bundle/main
+    $bundle = Join-Path $tmp 'mac-packaging.bundle'
+    git fetch --quiet $bundle refs/heads/main:refs/remotes/bundle/main
     if ($LASTEXITCODE -ne 0) {
         Write-Host '    [!] could not load the code bundle - skipping code push.' -ForegroundColor Yellow
     } else {
