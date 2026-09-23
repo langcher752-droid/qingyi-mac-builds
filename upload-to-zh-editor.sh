@@ -13,6 +13,10 @@ set -euo pipefail
 
 SRC_REPO="${SRC_REPO:-langcher752-droid/qingyi-mac-builds}"
 SRC_TAG="${SRC_TAG:-mac-v1.0.0}"
+# 注意：GitHub 的 Release 资源名只保留 ASCII，中文会被剥掉，
+# 所以这里用英文名（App 本身仍叫「清一新教育一键修改.app」）。
+DMG_ARM="Qingyi-Mac-AppleSilicon.dmg"   # M1/M2/M3/M4
+DMG_INTEL="Qingyi-Mac-Intel.dmg"        # Intel
 DST_REPO="${DST_REPO:-Arthurchen-01/zh-editor}"
 DST_TAG="${DST_TAG:-v1.0.0-mac}"
 
@@ -37,7 +41,7 @@ cd "$TMP"
 
 say "② 下载两个 Mac 安装包 + 代码包"
 gh release download "$SRC_TAG" --repo "$SRC_REPO" --dir "$TMP" --clobber
-ls -lh "$TMP"/清一新教育-Mac-*.dmg
+ls -lh "$TMP/$DMG_ARM" "$TMP/$DMG_INTEL"
 
 say "③ 把 macOS 打包改动推到 $DST_REPO"
 git clone --quiet "https://github.com/$DST_REPO.git" zh-editor
@@ -50,19 +54,20 @@ cd "$TMP"
 say "④ 发 Release $DST_TAG（附两个 dmg）"
 NOTES="macOS 预编译版一键程序：不用装 Python、不用终端。
 
-- Apple Silicon（M 系列）：清一新教育-Mac-AppleSilicon.dmg
-- Intel：清一新教育-Mac-Intel.dmg
+- Apple Silicon（M 系列）：$DMG_ARM
+- Intel：$DMG_INTEL
 
-用法：打开 dmg → 把 App 拖进「应用程序」→ 首次在它上面点右键 →「打开」。
-前提：Chrome 已登录 zhihu.com。"
+用法：打开 dmg → 把「清一新教育一键修改.app」拖进「应用程序」→
+首次在 App 上点右键 →「打开」（内部工具未公证，直接双击会被拦下）。
+前提：Chrome 已登录 zhihu.com；首次会弹一次钥匙串授权，点「始终允许」。"
 if gh release view "$DST_TAG" --repo "$DST_REPO" >/dev/null 2>&1; then
   gh release upload "$DST_TAG" --repo "$DST_REPO" --clobber \
-    "$TMP/清一新教育-Mac-AppleSilicon.dmg" "$TMP/清一新教育-Mac-Intel.dmg"
+    "$TMP/$DMG_ARM" "$TMP/$DMG_INTEL"
 else
   gh release create "$DST_TAG" --repo "$DST_REPO" \
     --title "macOS 版一键程序（Intel + Apple Silicon）" \
     --notes "$NOTES" \
-    "$TMP/清一新教育-Mac-AppleSilicon.dmg" "$TMP/清一新教育-Mac-Intel.dmg"
+    "$TMP/$DMG_ARM" "$TMP/$DMG_INTEL"
 fi
 
 say "完成 ✅"

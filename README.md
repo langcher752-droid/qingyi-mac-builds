@@ -17,9 +17,12 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/langcher752-droid/qingyi
 
 ## 安装包
 
-| 版本 | 适用机型 |
+| 资源名 | 适用机型 |
 | --- | --- |
-| `清一新教育-Mac-AppleSilicon.dmg` | M1/M2/M3/M4 |
-| `清一新教育-Mac-Intel.dmg` | Intel Mac |
+| `Qingyi-Mac-AppleSilicon.dmg` | M1/M2/M3/M4 |
+| `Qingyi-Mac-Intel.dmg` | Intel Mac |
+
+> 资源名用英文是因为 GitHub 会把 Release 资源名里的中文剥掉；
+> 下载后 App 本体仍叫「清一新教育一键修改.app」。
 
 用法：打开 dmg → App 拖进「应用程序」→ 首次在 App 上点右键 →「打开」。
