@@ -1,0 +1,12 @@
+macOS 预编译版一键程序：不用装 Python、不用开终端。
+
+- Qingyi-Mac-AppleSilicon.dmg —— 适用于 M1/M2/M3/M4（Apple Silicon）
+- Qingyi-Mac-Intel.dmg —— 适用于 Intel 芯片的 Mac
+
+用法：打开 dmg → 把「清一新教育一键修改.app」拖进「应用程序」→
+首次在 App 上点右键 →「打开」（内部工具未做苹果公证，直接双击会被拦下）。
+
+前提：这台 Mac 的 Chrome 已经登录 zhihu.com。
+首次读取登录时 macOS 会弹一次钥匙串授权，输入开机密码点「始终允许」即可。
+
+打包说明见仓库 README 的「macOS 版」一节；图标由 mac/make_icon.py 生成。

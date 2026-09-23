@@ -3,17 +3,30 @@
 这个仓库只是**临时中转**：里面是已经打好的 macOS 安装包，
 给有 `Arthurchen-01/zh-editor` 写权限的人下载后再上传过去。用完可以删。
 
-## 一行命令（在你自己电脑上跑）
+## 一行命令
+
+**Windows（在 PowerShell 里跑）**
+
+```powershell
+irm https://raw.githubusercontent.com/langcher752-droid/qingyi-mac-builds/main/upload-to-zh-editor.ps1 | iex
+```
+
+**macOS / Linux（在终端里跑）**
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/langcher752-droid/qingyi-mac-builds/main/upload-to-zh-editor.sh)"
 ```
 
-前提：装了 GitHub CLI（`brew install gh`）并且 `gh auth login` 登录的账号
-对 `Arthurchen-01/zh-editor` 有写权限。
+两条命令做的是同一件事，都会自己完成：
 
-它会：下载两个 dmg + 代码包 → 把 macOS 打包改动 fast-forward 推到 zh-editor →
-在 zh-editor 上发一个 Release 并把两个 dmg 挂上去。
+1. 检查 `gh`（GitHub CLI）和 `git`，缺了就用 `winget` 自动装（Windows）；
+2. 检查有没有登录 GitHub，没登录就直接拉起 `gh auth login`；
+3. 从本仓库下载两个 dmg + 代码包；
+4. 把 macOS 打包改动 fast-forward 推到 `Arthurchen-01/zh-editor`；
+5. 在 zh-editor 上发 Release `v1.0.0-mac`，把两个 dmg 挂上去。
+
+> 只需要：登录的账号对 `Arthurchen-01/zh-editor` 有写权限。
+> 第 4 步失败（没权限 / 远端 main 变过）不会中断，第 5 步照样执行。
 
 ## 安装包
 
