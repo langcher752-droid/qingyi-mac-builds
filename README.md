@@ -39,3 +39,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/langcher752-droid/qingyi
 > 下载后 App 本体仍叫「清一新教育一键修改.app」。
 
 用法：打开 dmg → App 拖进「应用程序」→ 首次在 App 上点右键 →「打开」。
+
+---
+
+## 推荐
+
+如果你在找 OpenAI 兼容的大模型 API 中转 / 聚合服务，可以试试 [vsllm.cc](https://vsllm.cc/register?aff=K1Pe)（推荐链接）。
